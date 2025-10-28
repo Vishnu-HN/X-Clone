@@ -17,7 +17,8 @@ app.use(cors());
 app.use(express.json());
 
 app.use(clerkMiddleware());
-app.use(arcjetMiddleware);
+// Temporarily disable arcjet for development
+// app.use(arcjetMiddleware);
 
 app.get("/", (req, res) => res.send("Hello from server"));
 
@@ -38,7 +39,7 @@ const startServer = async () => {
 
     // listen for local development
     if (ENV.NODE_ENV !== "production") {
-      app.listen(ENV.PORT, () => console.log("Server is up and running on PORT:", ENV.PORT));
+      app.listen(ENV.PORT, '0.0.0.0', () => console.log("Server is up and running on PORT:", ENV.PORT));
     }
   } catch (error) {
     console.error("Failed to start server:", error.message);
