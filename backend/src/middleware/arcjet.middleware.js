@@ -1,31 +1,45 @@
 import { aj } from "../config/arcjet.js";
 
-/**
- * Arcjet protection middleware.
- * - Skips bot protection if the user is authenticated (protectRoute ran before).
- * - Applies Arcjet rules for other requests.
- */
-export const arcjetProtect = async (req, res, next) => {
+// Arcjet middleware for rate limiting, bot protection, and security
+
+export const arcjetMiddleware = async (req, res, next) => {
   try {
-    // ✅ If user is authenticated, skip Arcjet bot detection
-    if (req.user || (req.auth && req.auth.userId)) {
-      return next();
+    const decision = await aj.protect(req, {
+      requested: 1, // each request consumes 1 token
+    });
+
+    // handle denied requests
+    if (decision.isDenied()) {
+      if (decision.reason.isRateLimit()) {
+        return res.status(429).json({
+          error: "Too Many Requests",
+          message: "Rate limit exceeded. Please try again later.",
+        });
+      } else if (decision.reason.isBot()) {
+        return res.status(403).json({
+          error: "Bot access denied",
+          message: "Automated requests are not allowed.",
+        });
+      } else {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: "Access denied by security policy.",
+        });
+      }
     }
 
-    // Otherwise, apply Arcjet bot & rate limiting rules
-    const decision = await aj.protect(req);
-
-    if (decision.isDenied()) {
-      console.warn("🚫 Arcjet blocked a request:", decision.reason);
+    // check for spoofed bots
+    if (decision.results.some((result) => result.reason.isBot() && result.reason.isSpoofed())) {
       return res.status(403).json({
-        error: "Bot access denied",
-        message: "Automated requests are not allowed.",
+        error: "Spoofed bot detected",
+        message: "Malicious bot activity detected.",
       });
     }
 
     next();
   } catch (error) {
     console.error("Arcjet middleware error:", error);
-    res.status(500).json({ error: "Arcjet protection failed" });
+    // allow request to continue if Arcjet fails
+    next();
   }
 };

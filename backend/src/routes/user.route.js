@@ -7,17 +7,16 @@ import {
   updateProfile,
 } from "../controllers/user.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
-import { arcjetProtect } from "../middleware/arcjet.middleware.js";
 
 const router = express.Router();
 
-// Public route
-router.get("/profile/:username", arcjetProtect, getUserProfile);
+// public route
+router.get("/profile/:username", getUserProfile);
 
-// ✅ Protected routes — Arcjet runs AFTER user is verified
-router.post("/sync", protectRoute, arcjetProtect, syncUser);
-router.post("/me", protectRoute, arcjetProtect, getCurrentUser);
-router.put("/profile", protectRoute, arcjetProtect, updateProfile);
-router.post("/follow/:targetUserId", protectRoute, arcjetProtect, followUser);
+// protected routes
+router.post("/sync", protectRoute, syncUser);
+router.get("/me", protectRoute, getCurrentUser);
+router.put("/profile", protectRoute, updateProfile);
+router.post("/follow/:targetUserId", protectRoute, followUser);
 
 export default router;

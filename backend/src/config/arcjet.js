@@ -1,27 +1,30 @@
-import { aj } from "../config/arcjet.js";
+import arcjet, { tokenBucket, shield, detectBot } from "@arcjet/node";
+import { ENV } from "./env.js";
 
-// ✅ Custom Arcjet middleware that skips bot blocking for authenticated users
-export const arcjetProtect = async (req, res, next) => {
-  try {
-    // Skip Arcjet protection if request has a valid Clerk user (added by auth.middleware)
-    if (req.auth && req.auth.userId) {
-      return next();
-    }
+// initialize Arcjet with security rules
+export const aj = arcjet({
+  key: ENV.ARCJET_KEY,
+  characteristics: ["ip.src"],
+  rules: [
+    // shield protects your app from common attacks e.g. SQL injection, XSS, CSRF attacks
+    shield({ mode: "LIVE" }),
 
-    // Apply Arcjet rules to other requests
-    const decision = await aj.protect(req);
+    // bot detection - block all bots except search engines
+    detectBot({
+      mode: "LIVE",
+      allow: [
+        "CATEGORY:SEARCH_ENGINE",
+        // allow legitimate search engine bots
+        // see full list at https://arcjet.com/bot-list
+      ],
+    }),
 
-    if (decision.isDenied()) {
-      console.warn("Arcjet blocked request:", decision.reason);
-      return res.status(403).json({
-        error: "Bot access denied",
-        message: "Automated requests are not allowed.",
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error("Arcjet middleware error:", error);
-    res.status(500).json({ error: "Arcjet protection failed" });
-  }
-};
+    // rate limiting with token bucket algorithm
+    tokenBucket({
+      mode: "LIVE",
+      refillRate: 10, // tokens added per interval
+      interval: 10, // interval in seconds (10 seconds)
+      capacity: 15, // maximum tokens in bucket
+    }),
+  ],
+});
