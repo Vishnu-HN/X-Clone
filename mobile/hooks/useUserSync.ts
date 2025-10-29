@@ -24,15 +24,17 @@ export const useUserSync = () => {
     },
   });
 
-  // Temporarily disable auto-sync to prevent infinite loops
-  // useEffect(() => {
-  //   if (isSignedIn && !data && !isPending) {
-  //     const timer = setTimeout(() => {
-  //       mutate();
-  //     }, 1000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [isSignedIn, data, isPending, mutate]);
+  // Automatically trigger sync when user signs in
+  useEffect(() => {
+    if (isSignedIn && !data && !isPending && !isError) {
+      // Small delay ensures Clerk token is ready
+      const timer = setTimeout(() => {
+        console.log('Attempting user sync...');
+        mutate();
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSignedIn, data, isPending, isError, mutate]);
 
   // Optionally return status flags for UI use (e.g., showing loader)
   return { isPending, isError, error };
