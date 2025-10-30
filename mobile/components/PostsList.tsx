@@ -4,6 +4,7 @@ import { Post } from "@/types";
 import { View, Text, ActivityIndicator, TouchableOpacity } from "react-native";
 import PostCard from "./PostCard";
 import { useState } from "react";
+import CommentsModal from "./CommentsModal";
 
 
 const PostsList = ({ username }: { username?: string }) => {
@@ -55,8 +56,7 @@ const PostsList = ({ username }: { username?: string }) => {
           isLiked={checkIsLiked(post.likes, currentUser)}
         />
       ))}
-
-
+<CommentsModal selectedPost={selectedPost} onClose={() => setSelectedPostId(null)} />
     </>
   );
 };
