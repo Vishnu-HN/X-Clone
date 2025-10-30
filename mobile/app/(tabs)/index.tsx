@@ -1,4 +1,5 @@
 import PostComposer from "@/components/PostComposer";
+import PostsList from "@/components/PostsList";
 import { RefreshControl, ScrollView, Text, View } from "react-native";
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -23,6 +24,7 @@ const HomeScreen = () => {
         contentContainerStyle={{ paddingBottom: 80 }}
         >
       <PostComposer />
+      <PostsList />
        
        </ScrollView>
     </SafeAreaView>
