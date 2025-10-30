@@ -64,7 +64,7 @@ const PostCard = ({ currentUser, onDelete, onLike, post, isLiked, onComment }: P
           )}
 
           <View className="flex-row justify-between max-w-xs">
-            <TouchableOpacity className="flex-row items-center" onPress={() => {}}>
+            <TouchableOpacity className="flex-row items-center" onPress={() => onComment(post)}>
               <Feather name="message-circle" size={18} color="#657786" />
               <Text className="text-gray-500 text-sm ml-2">
                 {formatNumber(post.comments?.length || 0)}
